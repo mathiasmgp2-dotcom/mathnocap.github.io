@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Street Go S12 · Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@300;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0d0f0f;
+    --surface:  #161919;
+    --card:     #1c2020;
+    --border:   #2a2f2f;
+    --accent:   #b5f23a;
+    --accent2:  #4af0c4;
+    --warn:     #f0a84a;
+    --danger:   #f05a4a;
+    --text:     #e8ede8;
+    --muted:    #6a7a6a;
+    --mono:     'Space Mono', monospace;
+    --sans:     'Barlow Condensed', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 16px 20px 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo {
+    display: flex;
+    flex-direction: column;
+  }
+  .logo-main {
+    font-family: var(--sans);
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .logo-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    margin-top: 2px;
+  }
+  .header-btns {
+    display: flex;
+    gap: 8px;
+  }
+  .btn-icon {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.15s;
+  }
+  .btn-icon:active { background: var(--border); transform: scale(0.95); }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 20px;
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .stats-bar::-webkit-scrollbar { display: none; }
+  .stat-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 80px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 12px;
+  }
+  .stat-val {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .stat-lbl {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 3px;
+    white-space: nowrap;
+  }
+
+  /* ── SECTION ── */
+  .section { padding: 20px; }
+  .section-title {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── ADD TRIP FORM ── */
+  .form-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 20px;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .form-row.single { grid-template-columns: 1fr; }
+  .form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .field label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .field input,
+  .field select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .field input:focus,
+  .field select:focus {
+    border-color: var(--accent);
+  }
+  .field select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a7a6a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+
+  /* custom dist field hidden/shown */
+  .dist-custom { display: none; }
+  .dist-custom.visible { display: flex; }
+
+  .preview-dist {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent2);
+    text-align: center;
+    padding: 8px;
+    background: var(--surface);
+    border-radius: 8px;
+    border: 1px dashed var(--border);
+  }
+
+  .btn-add {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: #0d0f0f;
+    border: none;
+    border-radius: 10px;
+    font-family: var(--sans);
+    font-weight: 900;
+    font-size: 16px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-top: 4px;
+  }
+  .btn-add:active { opacity: 0.85; transform: scale(0.98); }
+
+  /* ── TRIPS TABLE ── */
+  .trips-wrap {
+    overflow-x: auto;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+  }
+  table {
+    width: 100%;
+    min-width: 680px;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  thead tr {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+  }
+  th {
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+  tbody tr:hover { background: rgba(181,242,58,0.04); }
+  td {
+    padding: 10px 12px;
+    white-space: nowrap;
+  }
+  .td-date { color: var(--muted); font-size: 11px; }
+  .td-loc {
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text);
+  }
+  .td-num { color: var(--accent2); text-align: right; }
+  .td-num.warn { color: var(--warn); }
+  .td-num.danger { color: var(--danger); }
+  .td-num.good { color: var(--accent); }
+  .arrow { color: var(--muted); }
+  .td-del {
+    color: var(--muted);
+    cursor: pointer;
+    text-align: center;
+    font-size: 16px;
+    transition: color 0.15s;
+  }
+  .td-del:hover { color: var(--danger); }
+
+  /* Battery badge */
+  .bat {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .bat-bar {
+    width: 28px;
+    height: 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+  }
+  .bat-bar::after {
+    content: '';
+    position: absolute;
+    right: -3px;
+    top: 2px;
+    width: 3px;
+    height: 6px;
+    background: var(--border);
+    border-radius: 0 1px 1px 0;
+  }
+  .bat-fill {
+    height: 100%;
+    border-radius: 1px;
+    transition: width 0.3s;
+  }
+
+  /* ── SETTINGS PANEL ── */
+  .settings-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    backdrop-filter: blur(4px);
+  }
+  .settings-overlay.open { display: flex; align-items: flex-end; }
+  .settings-sheet {
+    background: var(--card);
+    border-radius: 20px 20px 0 0;
+    border-top: 2px solid var(--accent);
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 24px 20px 40px;
+    animation: slideUp 0.25s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+  .sheet-title {
+    font-family: var(--sans);
+    font-weight: 900;
+    font-size: 20px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .dist-grid {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .dist-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .dist-row-label {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--text);
+  }
+  .dist-row-label small {
+    display: block;
+    font-size: 10px;
+    color: var(--muted);
+    font-family: var(--mono);
+    margin-top: 1px;
+  }
+  .dist-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .dist-input-wrap input {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 700;
+    padding: 6px 8px;
+    width: 70px;
+    text-align: right;
+    outline: none;
+  }
+  .dist-input-wrap input:focus { border-color: var(--accent); }
+  .dist-input-wrap span { color: var(--muted); font-size: 11px; }
+
+  .btn-save-settings {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: #0d0f0f;
+    border: none;
+    border-radius: 10px;
+    font-family: var(--sans);
+    font-weight: 900;
+    font-size: 16px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+
+  /* empty state */
+  .empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--muted);
+  }
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state p { font-size: 13px; line-height: 1.6; }
+
+  /* toast */
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--accent);
+    color: #0d0f0f;
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1px;
+    padding: 12px 20px;
+    border-radius: 30px;
+    z-index: 300;
+    transition: transform 0.3s ease;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* export btn */
+  .btn-export {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .note {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 8px;
+    font-family: var(--mono);
+  }
+
+  /* autonomy meter */
+  .autonomy-bar-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .autonomy-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .autonomy-track {
+    height: 8px;
+    background: var(--surface);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .autonomy-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    border-radius: 4px;
+    transition: width 0.5s ease;
+  }
+  .autonomy-vals {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .autonomy-vals strong {
+    color: var(--accent);
+    font-size: 16px;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <span class="logo-main">⚡ S12</span>
+    <span class="logo-sub">STREET GO · TRACKER</span>
+  </div>
+  <div class="header-btns">
+    <button class="btn-icon" onclick="openSettings()" title="Configurações">⚙️</button>
+    <button class="btn-icon" onclick="exportCSV()" title="Exportar CSV">📤</button>
+  </div>
+</header>
+
+<!-- STATS BAR -->
+<div class="stats-bar" id="statsBar">
+  <div class="stat-pill">
+    <span class="stat-val" id="s-trips">0</span>
+    <span class="stat-lbl">viagens</span>
+  </div>
+  <div class="stat-pill">
+    <span class="stat-val" id="s-km">0</span>
+    <span class="stat-lbl">km total</span>
+  </div>
+  <div class="stat-pill">
+    <span class="stat-val" id="s-range">—</span>
+    <span class="stat-lbl">autonomia</span>
+  </div>
+  <div class="stat-pill">
+    <span class="stat-val" id="s-perkm">—</span>
+    <span class="stat-lbl">%/km médio</span>
+  </div>
+  <div class="stat-pill">
+    <span class="stat-val" id="s-avguse">—</span>
+    <span class="stat-lbl">% uso médio</span>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="section">
+
+  <!-- AUTONOMY VISUAL -->
+  <div id="autonomyBlock" style="display:none">
+    <div class="autonomy-bar-wrap">
+      <div class="autonomy-label">Autonomia estimada atual</div>
+      <div class="autonomy-track">
+        <div class="autonomy-fill" id="autoFill" style="width:0%"></div>
+      </div>
+      <div class="autonomy-vals">
+        <span>0 km</span>
+        <span><strong id="autoVal">—</strong> km</span>
+        <span id="autoMax">— km max</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD TRIP -->
+  <div class="section-title">Nova viagem</div>
+
+  <div class="form-card">
+    <div class="form-row">
+      <div class="field">
+        <label>📅 Data</label>
+        <input type="date" id="f-date">
+      </div>
+      <div class="field">
+        <label>🕐 Hora saída</label>
+        <input type="time" id="f-time">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="field">
+        <label>📍 Saída</label>
+        <select id="f-from" onchange="updateDist()">
+          <option value="PampaFoods">PampaFoods</option>
+          <option value="Casa">Casa</option>
+          <option value="UFRGS">UFRGS</option>
+          <option value="outro">Outro endereço</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>🏁 Destino</label>
+        <select id="f-to" onchange="updateDist()">
+          <option value="Casa">Casa</option>
+          <option value="PampaFoods">PampaFoods</option>
+          <option value="UFRGS">UFRGS</option>
+          <option value="outro">Outro endereço</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row dist-custom" id="distCustomRow">
+      <div class="field" style="grid-column:1/-1">
+        <label>📏 Distância manual (km)</label>
+        <input type="number" id="f-dist-custom" placeholder="ex: 4.5" step="0.1" min="0" oninput="updateDistPreview()">
+      </div>
+    </div>
+
+    <div class="preview-dist" id="distPreview">— km estimados</div>
+
+    <div class="form-row triple" style="margin-top:10px">
+      <div class="field">
+        <label>🔋 Bat. saída %</label>
+        <input type="number" id="f-bat-out" placeholder="100" min="0" max="100" oninput="updateCalcPreview()">
+      </div>
+      <div class="field">
+        <label>🔋 Bat. chegada %</label>
+        <input type="number" id="f-bat-in" placeholder="72" min="0" max="100" oninput="updateCalcPreview()">
+      </div>
+      <div class="field">
+        <label>⚡ Previsão</label>
+        <input type="text" id="f-calc-preview" readonly placeholder="—" style="color:var(--accent2);cursor:default">
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:10px">
+      <label>📝 Nota (opcional)</label>
+      <input type="text" id="f-note" placeholder="ex: chuva, modo eco, carga baixa…">
+    </div>
+
+    <button class="btn-add" onclick="addTrip()">+ REGISTRAR VIAGEM</button>
+  </div>
+
+  <!-- TRIPS TABLE -->
+  <div class="section-title">Histórico</div>
+
+  <div id="emptyState" class="empty-state">
+    <div class="icon">🛵</div>
+    <p>Nenhuma viagem registrada ainda.<br>Adicione sua primeira acima!</p>
+  </div>
+
+  <div class="trips-wrap" id="tableWrap" style="display:none">
+    <table>
+      <thead>
+        <tr>
+          <th>Data / Hora</th>
+          <th>Rota</th>
+          <th>Dist km</th>
+          <th>Bat saída</th>
+          <th>Bat chegada</th>
+          <th>% gasto</th>
+          <th>%/km</th>
+          <th>Autonomia est.</th>
+          <th>Nota</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tripsBody"></tbody>
+    </table>
+  </div>
+  <p class="note" id="tableNote" style="display:none">← deslize para ver mais colunas</p>
+
+</div>
+
+<!-- SETTINGS OVERLAY -->
+<div class="settings-overlay" id="settingsOverlay" onclick="closeSettingsOutside(event)">
+  <div class="settings-sheet">
+    <div class="sheet-title">
+      <span>⚙️ Configurações</span>
+      <button class="btn-icon" onclick="closeSettings()">✕</button>
+    </div>
+
+    <div class="section-title" style="margin-bottom:14px">Distâncias entre locais (a pé / rota real)</div>
+    <p class="note" style="margin-bottom:14px;text-align:left">Ajuste conforme sua rota real de bike</p>
+
+    <div class="dist-grid" id="distGrid"></div>
+
+    <div class="section-title" style="margin-top:16px;margin-bottom:14px">Bateria da moto</div>
+    <div class="form-row">
+      <div class="field">
+        <label>Capacidade total (%)</label>
+        <input type="number" id="s-bat-cap" value="100" min="1" max="100" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:14px;padding:10px 12px;outline:none;width:100%">
+      </div>
+      <div class="field">
+        <label>Fabricante diz (km)</label>
+        <input type="number" id="s-mfr-range" value="70" min="1" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:14px;padding:10px 12px;outline:none;width:100%">
+      </div>
+    </div>
+
+    <button class="btn-save-settings" onclick="saveSettings()">✓ SALVAR</button>
+    <button class="btn-export" onclick="exportCSV(); closeSettings();">📤 Exportar CSV</button>
+    <button class="btn-export" style="margin-top:6px;color:var(--danger);border-color:var(--danger)" onclick="clearAll()">🗑️ Apagar todos os dados</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══ DATA ══════════════════════════════════════════════════════
+const LOCATIONS = {
+  PampaFoods: { label: 'PampaFoods', addr: 'Av. Farrapos, 2475 - Floresta' },
+  Casa:       { label: 'Casa',       addr: 'R. Carlos Von Koseritz, 1583 - São João' },
+  UFRGS:      { label: 'UFRGS',      addr: 'R. Sarmento Leite, 425 - Centro Histórico' },
+};
+
+// Distâncias padrão estimadas (a pé / rota real aproximada em km)
+// PampaFoods ↔ Casa: ~8.4 km  (Floresta → São João cruzando a cidade)
+// PampaFoods ↔ UFRGS: ~5.1 km (Floresta → Centro Histórico)
+// Casa ↔ UFRGS: ~5.8 km       (São João → Centro Histórico)
+const DEFAULT_DISTS = {
+  'PampaFoods|Casa':   8.4,
+  'PampaFoods|UFRGS':  5.1,
+  'Casa|UFRGS':        5.8,
+};
+
+let settings = loadSettings();
+let trips    = loadTrips();
+
+function loadSettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem('sg_settings') || 'null');
+    return s || {
+      dists: { ...DEFAULT_DISTS },
+      batCap: 100,
+      mfrRange: 70
+    };
+  } catch { return { dists: { ...DEFAULT_DISTS }, batCap: 100, mfrRange: 70 }; }
+}
+
+function saveSettingsData() {
+  localStorage.setItem('sg_settings', JSON.stringify(settings));
+}
+
+function loadTrips() {
+  try {
+    return JSON.parse(localStorage.getItem('sg_trips') || '[]');
+  } catch { return []; }
+}
+
+function saveTripsData() {
+  localStorage.setItem('sg_trips', JSON.stringify(trips));
+}
+
+// ══ DISTANCE LOOKUP ══════════════════════════════════════════
+function getDist(a, b) {
+  if (a === b) return 0;
+  const k1 = `${a}|${b}`, k2 = `${b}|${a}`;
+  return settings.dists[k1] ?? settings.dists[k2] ?? null;
+}
+
+// ══ FORM INIT ════════════════════════════════════════════════
+(function initForm() {
+  const today = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  document.getElementById('f-date').value =
+    `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+  document.getElementById('f-time').value =
+    `${pad(today.getHours())}:${pad(today.getMinutes())}`;
+  updateDist();
+})();
+
+function updateDist() {
+  const from = document.getElementById('f-from').value;
+  const to   = document.getElementById('f-to').value;
+  const customRow = document.getElementById('distCustomRow');
+  const preview   = document.getElementById('distPreview');
+
+  const needCustom = (from === 'outro' || to === 'outro');
+  customRow.classList.toggle('visible', needCustom);
+
+  if (!needCustom) {
+    const d = getDist(from, to);
+    if (from === to) {
+      preview.textContent = '⚠️ Saída = destino';
+    } else if (d !== null) {
+      preview.textContent = `↔ ${d.toFixed(1)} km estimados (editável em ⚙️)`;
+    } else {
+      preview.textContent = '— distância não configurada';
+    }
+  } else {
+    updateDistPreview();
+  }
+  updateCalcPreview();
+}
+
+function updateDistPreview() {
+  const from = document.getElementById('f-from').value;
+  const to   = document.getElementById('f-to').value;
+  const custom = parseFloat(document.getElementById('f-dist-custom').value);
+  const preview = document.getElementById('distPreview');
+
+  if (from === 'outro' || to === 'outro') {
+    if (!isNaN(custom) && custom > 0) {
+      preview.textContent = `↔ ${custom.toFixed(1)} km (manual)`;
+    } else {
+      preview.textContent = '— insira a distância acima';
+    }
+  }
+  updateCalcPreview();
+}
+
+function getFormDist() {
+  const from = document.getElementById('f-from').value;
+  const to   = document.getElementById('f-to').value;
+  if (from === 'outro' || to === 'outro') {
+    const v = parseFloat(document.getElementById('f-dist-custom').value);
+    return isNaN(v) ? null : v;
+  }
+  return getDist(from, to);
+}
+
+function updateCalcPreview() {
+  const dist   = getFormDist();
+  const batOut = parseFloat(document.getElementById('f-bat-out').value);
+  const batIn  = parseFloat(document.getElementById('f-bat-in').value);
+  const preview = document.getElementById('f-calc-preview');
+
+  if (dist && !isNaN(batOut) && !isNaN(batIn)) {
+    const used = batOut - batIn;
+    if (used > 0 && dist > 0) {
+      const perkm = used / dist;
+      const range = 100 / perkm;
+      preview.value = `${range.toFixed(0)} km auto`;
+    } else {
+      preview.value = '—';
+    }
+  } else {
+    preview.value = '—';
+  }
+}
+
+// ══ ADD TRIP ══════════════════════════════════════════════════
+function addTrip() {
+  const date   = document.getElementById('f-date').value;
+  const time   = document.getElementById('f-time').value;
+  const from   = document.getElementById('f-from').value;
+  const to     = document.getElementById('f-to').value;
+  const dist   = getFormDist();
+  const batOut = parseFloat(document.getElementById('f-bat-out').value);
+  const batIn  = parseFloat(document.getElementById('f-bat-in').value);
+  const note   = document.getElementById('f-note').value.trim();
+
+  if (!date)            { showToast('⚠️ Informe a data'); return; }
+  if (from === to)      { showToast('⚠️ Saída = destino'); return; }
+  if (dist === null)    { showToast('⚠️ Informe a distância'); return; }
+  if (isNaN(batOut))    { showToast('⚠️ Informe bateria na saída'); return; }
+  if (isNaN(batIn))     { showToast('⚠️ Informe bateria na chegada'); return; }
+  if (batIn > batOut)   { showToast('⚠️ Bateria chegada > saída?'); return; }
+
+  const trip = {
+    id:     Date.now(),
+    date, time, from, to, dist,
+    batOut, batIn, note
+  };
+
+  trips.unshift(trip);
+  saveTripsData();
+  renderAll();
+  showToast('✓ Viagem registrada!');
+
+  // reset batteries and note
+  document.getElementById('f-bat-out').value = '';
+  document.getElementById('f-bat-in').value  = '';
+  document.getElementById('f-note').value    = '';
+  document.getElementById('f-dist-custom').value = '';
+  document.getElementById('f-calc-preview').value = '—';
+  updateDist();
+}
+
+// ══ CALCULATIONS ══════════════════════════════════════════════
+function calcTrip(t) {
+  const used      = t.batOut - t.batIn;            // % gasto
+  const perkm     = t.dist > 0 ? used / t.dist : null; // %/km
+  const autoRange = perkm ? (100 / perkm) : null;  // km com 100%
+  return { used, perkm, autoRange };
+}
+
+// ══ RENDER ════════════════════════════════════════════════════
+function renderAll() {
+  renderTable();
+  renderStats();
+}
+
+function batColor(pct) {
+  if (pct >= 60) return 'var(--accent)';
+  if (pct >= 30) return 'var(--warn)';
+  return 'var(--danger)';
+}
+
+function batBadge(pct) {
+  const color = batColor(pct);
+  const w = Math.max(0, Math.min(100, pct));
+  return `<span class="bat">
+    <span style="font-family:var(--mono);font-size:12px">${pct}%</span>
+    <span class="bat-bar"><span class="bat-fill" style="width:${w}%;background:${color}"></span></span>
+  </span>`;
+}
+
+function fmtLoc(key) {
+  if (key === 'outro') return '📍Outro';
+  return LOCATIONS[key]?.label ?? key;
+}
+
+function fmtDate(d, t) {
+  if (!d) return '—';
+  const [y, m, day] = d.split('-');
+  const base = `${day}/${m}`;
+  return t ? `${base} ${t}` : base;
+}
+
+function numClass(val, lowGood) {
+  // lowGood: true = menor é melhor (perkm)
+  if (lowGood) {
+    return val < 1.2 ? 'good' : val < 1.8 ? 'warn' : 'danger';
+  }
+  return val >= 60 ? 'good' : val >= 40 ? 'warn' : 'danger';
+}
+
+function renderTable() {
+  const body  = document.getElementById('tripsBody');
+  const empty = document.getElementById('emptyState');
+  const wrap  = document.getElementById('tableWrap');
+  const note  = document.getElementById('tableNote');
+
+  if (trips.length === 0) {
+    empty.style.display = 'block';
+    wrap.style.display  = 'none';
+    note.style.display  = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+  wrap.style.display  = 'block';
+  note.style.display  = 'block';
+
+  body.innerHTML = trips.map(t => {
+    const { used, perkm, autoRange } = calcTrip(t);
+    const pkClass    = perkm ? numClass(perkm, true) : '';
+    const rangeClass = autoRange ? numClass(autoRange, false) : '';
+
+    return `<tr>
+      <td class="td-date">${fmtDate(t.date, t.time)}</td>
+      <td class="td-loc">
+        <span style="color:var(--accent2)">${fmtLoc(t.from)}</span>
+        <span class="arrow"> → </span>
+        <span>${fmtLoc(t.to)}</span>
+      </td>
+      <td class="td-num">${t.dist.toFixed(1)}</td>
+      <td>${batBadge(t.batOut)}</td>
+      <td>${batBadge(t.batIn)}</td>
+      <td class="td-num ${numClass(used, true)}">${used.toFixed(0)}%</td>
+      <td class="td-num ${pkClass}">${perkm ? perkm.toFixed(2) : '—'}</td>
+      <td class="td-num ${rangeClass}">${autoRange ? autoRange.toFixed(0) + ' km' : '—'}</td>
+      <td style="color:var(--muted);font-size:11px;max-width:100px;overflow:hidden;text-overflow:ellipsis">${t.note || ''}</td>
+      <td class="td-del" onclick="deleteTrip(${t.id})">✕</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderStats() {
+  if (trips.length === 0) {
+    document.getElementById('s-trips').textContent  = '0';
+    document.getElementById('s-km').textContent     = '0';
+    document.getElementById('s-range').textContent  = '—';
+    document.getElementById('s-perkm').textContent  = '—';
+    document.getElementById('s-avguse').textContent = '—';
+    document.getElementById('autonomyBlock').style.display = 'none';
+    return;
+  }
+
+  const totalKm   = trips.reduce((s, t) => s + t.dist, 0);
+  const validTrips = trips.filter(t => t.batOut > t.batIn && t.dist > 0);
+  const ranges    = validTrips.map(t => calcTrip(t).autoRange).filter(Boolean);
+  const perkms    = validTrips.map(t => calcTrip(t).perkm).filter(Boolean);
+  const uses      = validTrips.map(t => calcTrip(t).used);
+
+  const avgRange = ranges.length ? ranges.reduce((a, b) => a + b, 0) / ranges.length : null;
+  const avgPerkm = perkms.length ? perkms.reduce((a, b) => a + b, 0) / perkms.length : null;
+  const avgUse   = uses.length   ? uses.reduce((a, b) => a + b, 0) / uses.length   : null;
+
+  document.getElementById('s-trips').textContent  = trips.length;
+  document.getElementById('s-km').textContent     = totalKm.toFixed(0);
+  document.getElementById('s-range').textContent  = avgRange ? avgRange.toFixed(0) + ' km' : '—';
+  document.getElementById('s-perkm').textContent  = avgPerkm ? avgPerkm.toFixed(2) : '—';
+  document.getElementById('s-avguse').textContent = avgUse   ? avgUse.toFixed(0) + '%' : '—';
+
+  // autonomy bar
+  if (avgRange) {
+    const mfr = settings.mfrRange || 70;
+    const pct = Math.min(100, (avgRange / mfr) * 100);
+    document.getElementById('autonomyBlock').style.display = 'block';
+    document.getElementById('autoFill').style.width = pct + '%';
+    document.getElementById('autoVal').textContent  = avgRange.toFixed(0);
+    document.getElementById('autoMax').textContent  = `${mfr} km fab.`;
+  }
+}
+
+// ══ DELETE ════════════════════════════════════════════════════
+function deleteTrip(id) {
+  if (!confirm('Apagar esta viagem?')) return;
+  trips = trips.filter(t => t.id !== id);
+  saveTripsData();
+  renderAll();
+  showToast('🗑️ Viagem apagada');
+}
+
+// ══ SETTINGS ══════════════════════════════════════════════════
+function openSettings() {
+  renderDistGrid();
+  document.getElementById('s-bat-cap').value  = settings.batCap  || 100;
+  document.getElementById('s-mfr-range').value = settings.mfrRange || 70;
+  document.getElementById('settingsOverlay').classList.add('open');
+}
+
+function closeSettings() {
+  document.getElementById('settingsOverlay').classList.remove('open');
+}
+
+function closeSettingsOutside(e) {
+  if (e.target === document.getElementById('settingsOverlay')) closeSettings();
+}
+
+const DIST_PAIRS = [
+  ['PampaFoods', 'Casa',    'PampaFoods ↔ Casa'],
+  ['PampaFoods', 'UFRGS',   'PampaFoods ↔ UFRGS'],
+  ['Casa',       'UFRGS',   'Casa ↔ UFRGS'],
+];
+
+function renderDistGrid() {
+  const grid = document.getElementById('distGrid');
+  grid.innerHTML = DIST_PAIRS.map(([a, b, label]) => {
+    const key = `${a}|${b}`;
+    const val = settings.dists[key] ?? settings.dists[`${b}|${a}`] ?? '';
+    const addrA = LOCATIONS[a]?.addr ?? '';
+    const addrB = LOCATIONS[b]?.addr ?? '';
+    return `<div class="dist-row">
+      <div class="dist-row-label">
+        ${label}
+        <small>${addrA} → ${addrB}</small>
+      </div>
+      <div class="dist-input-wrap">
+        <input type="number" step="0.1" min="0" id="dist_${a}_${b}" value="${val}" placeholder="—">
+        <span>km</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function saveSettings() {
+  DIST_PAIRS.forEach(([a, b]) => {
+    const inp = document.getElementById(`dist_${a}_${b}`);
+    if (inp) {
+      const v = parseFloat(inp.value);
+      if (!isNaN(v) && v > 0) settings.dists[`${a}|${b}`] = v;
+    }
+  });
+  settings.batCap   = parseFloat(document.getElementById('s-bat-cap').value)   || 100;
+  settings.mfrRange = parseFloat(document.getElementById('s-mfr-range').value) || 70;
+  saveSettingsData();
+  renderAll();
+  updateDist();
+  closeSettings();
+  showToast('✓ Configurações salvas!');
+}
+
+// ══ EXPORT CSV ════════════════════════════════════════════════
+function exportCSV() {
+  if (trips.length === 0) { showToast('⚠️ Nenhuma viagem para exportar'); return; }
+  const header = ['Data','Hora','Saída','Destino','Dist km','Bat Saída %','Bat Chegada %','Gasto %','%/km','Autonomia est km','Nota'];
+  const rows = trips.map(t => {
+    const { used, perkm, autoRange } = calcTrip(t);
+    return [t.date, t.time, fmtLoc(t.from), fmtLoc(t.to),
+      t.dist.toFixed(1), t.batOut, t.batIn,
+      used.toFixed(0),
+      perkm ? perkm.toFixed(2) : '',
+      autoRange ? autoRange.toFixed(0) : '',
+      `"${t.note || ''}"`
+    ].join(',');
+  });
+  const csv  = [header.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `streetgo_viagens_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📤 CSV exportado!');
+}
+
+// ══ CLEAR ═════════════════════════════════════════════════════
+function clearAll() {
+  if (!confirm('Apagar TODOS os dados? Essa ação não pode ser desfeita.')) return;
+  trips = [];
+  saveTripsData();
+  renderAll();
+  closeSettings();
+  showToast('🗑️ Dados apagados');
+}
+
+// ══ TOAST ═════════════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ══ INIT ══════════════════════════════════════════════════════
+renderAll();
+</script>
+</body>
+</html>
