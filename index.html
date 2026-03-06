@@ -1,593 +1,518 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<!-- viewport-fit=cover: conteúdo vai até as bordas, safe-area lida com notch e home indicator -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<!-- Web App meta tags: esconde UI do Safari quando adicionado à home screen -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="S12 Tracker">
 <title>Street Go S12 · Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@300;500;700;900&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg:       #0d0f0f;
-    --surface:  #161919;
-    --card:     #1c2020;
-    --border:   #2a2f2f;
-    --accent:   #b5f23a;
-    --accent2:  #4af0c4;
-    --warn:     #f0a84a;
-    --danger:   #f05a4a;
-    --text:     #e8ede8;
-    --muted:    #6a7a6a;
-    --mono:     'Space Mono', monospace;
-    --sans:     'Barlow Condensed', sans-serif;
-  }
+/* ── TEMAS ───────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg:#0d0f0f; --surface:#161919; --card:#1c2020; --border:#2a2f2f;
+  --accent:#b5f23a; --accent2:#4af0c4; --warn:#f0a84a; --danger:#f05a4a;
+  --text:#e8ede8; --muted:#6a7a6a; --shadow:rgba(0,0,0,0.5);
+  --status-bg:#0d0f0f;
+}
+[data-theme="light"] {
+  --bg:#f0f2ee; --surface:#ffffff; --card:#f7f9f5; --border:#d4dace;
+  --accent:#4a8a00; --accent2:#008a6a; --warn:#b06a00; --danger:#b03020;
+  --text:#1a221a; --muted:#7a8a7a; --shadow:rgba(0,0,0,0.12);
+  --status-bg:#ffffff;
+}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── RESET & BASE ────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 15px;
-    min-height: 100vh;
-    padding-bottom: 80px;
-  }
+html {
+  /* Previne bounce scroll lateral no iOS */
+  overflow-x: hidden;
+}
 
-  /* ── HEADER ── */
-  header {
-    background: var(--surface);
-    border-bottom: 2px solid var(--accent);
-    padding: 16px 20px 12px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .logo {
-    display: flex;
-    flex-direction: column;
-  }
-  .logo-main {
-    font-family: var(--sans);
-    font-weight: 900;
-    font-size: 22px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--accent);
-    line-height: 1;
-  }
-  .logo-sub {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 2px;
-    margin-top: 2px;
-  }
-  .header-btns {
-    display: flex;
-    gap: 8px;
-  }
-  .btn-icon {
-    background: var(--card);
-    border: 1px solid var(--border);
-    color: var(--text);
-    border-radius: 8px;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 18px;
-    transition: all 0.15s;
-  }
-  .btn-icon:active { background: var(--border); transform: scale(0.95); }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px; /* 16px mínimo: evita zoom automático do Safari em inputs */
+  min-height: 100vh;
+  min-height: -webkit-fill-available; /* altura real no iOS Safari */
+  /* Padding bottom = home indicator (34px) + espaço extra */
+  padding-bottom: calc(90px + env(safe-area-inset-bottom));
+  transition: background .2s, color .2s;
+  -webkit-text-size-adjust: 100%; /* evita redimensionamento de fonte ao rotacionar */
+  overscroll-behavior-y: contain;
+}
 
-  /* ── STATS BAR ── */
-  .stats-bar {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 10px 20px;
-    display: flex;
-    gap: 16px;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .stats-bar::-webkit-scrollbar { display: none; }
-  .stat-pill {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-width: 80px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 8px 12px;
-  }
-  .stat-val {
-    font-family: var(--mono);
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--accent);
-    line-height: 1;
-  }
-  .stat-lbl {
-    font-size: 10px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-top: 3px;
-    white-space: nowrap;
-  }
+/* ── HEADER ──────────────────────────────────────────────── */
+header {
+  background: var(--surface);
+  border-bottom: 2px solid var(--accent);
+  /* padding-top inclui a área da Dynamic Island / notch */
+  padding: calc(14px + env(safe-area-inset-top)) 16px 12px;
+  padding-left: calc(16px + env(safe-area-inset-left));
+  padding-right: calc(16px + env(safe-area-inset-right));
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 16px var(--shadow);
+}
+.logo-main {
+  font-weight: 900; font-size: 21px;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: var(--accent); line-height: 1;
+}
+.logo-sub {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; color: var(--muted);
+  letter-spacing: 2px; margin-top: 2px;
+}
+.header-btns { display: flex; gap: 8px; }
 
-  /* ── SECTION ── */
-  .section { padding: 20px; }
-  .section-title {
-    font-family: var(--sans);
-    font-weight: 700;
-    font-size: 11px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .section-title::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
+/* Touch targets mínimos de 44×44px (Apple HIG) */
+.btn-icon {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 10px;
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 18px;
+  transition: opacity .15s, transform .1s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.btn-icon:active { opacity: .6; transform: scale(.92); }
 
-  /* ── ADD TRIP FORM ── */
-  .form-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 18px;
-    margin-bottom: 20px;
-  }
-  .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 10px;
-  }
-  .form-row.single { grid-template-columns: 1fr; }
-  .form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+/* ── STATS BAR ───────────────────────────────────────────── */
+.stats-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  padding-left: calc(16px + env(safe-area-inset-left));
+  padding-right: calc(16px + env(safe-area-inset-right));
+  display: flex; gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.stats-bar::-webkit-scrollbar { display: none; }
+.stat-pill {
+  display: flex; flex-direction: column; align-items: center;
+  /* Mínimo 64px: 5 pills cabem na tela do iPhone 13 (390px) confortavelmente */
+  min-width: 64px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  flex-shrink: 0;
+}
+.stat-val {
+  font-family: 'Space Mono', monospace;
+  font-size: 15px; font-weight: 700;
+  color: var(--accent); line-height: 1;
+}
+.stat-lbl {
+  font-size: 9px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .8px;
+  margin-top: 3px; white-space: nowrap;
+}
 
-  .field {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
-  .field label {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-  .field input,
-  .field select {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 14px;
-    padding: 10px 12px;
-    outline: none;
-    transition: border-color 0.15s;
-    width: 100%;
-    -webkit-appearance: none;
-    appearance: none;
-  }
-  .field input:focus,
-  .field select:focus {
-    border-color: var(--accent);
-  }
-  .field select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a7a6a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    padding-right: 32px;
-  }
+/* ── PENDING BANNER ──────────────────────────────────────── */
+.pending-banner {
+  margin: 14px 16px 0;
+  margin-left: calc(16px + env(safe-area-inset-left));
+  margin-right: calc(16px + env(safe-area-inset-right));
+  background: var(--card);
+  border: 2px solid var(--warn);
+  border-radius: 16px;
+  padding: 15px 16px;
+  animation: pulseGlow 2.2s ease-in-out infinite;
+  display: none;
+}
+.pending-banner.visible { display: block; }
+@keyframes pulseGlow {
+  0%,100% { box-shadow: 0 0 0 0 rgba(240,168,74,0); }
+  50%      { box-shadow: 0 0 18px 4px rgba(240,168,74,.2); }
+}
+.pending-title {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--warn); margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.pending-dot {
+  width: 8px; height: 8px;
+  background: var(--warn); border-radius: 50%;
+  animation: blink 1s step-start infinite; flex-shrink: 0;
+}
+@keyframes blink { 50% { opacity: 0; } }
+.pending-route {
+  font-family: 'Space Mono', monospace;
+  font-size: 15px; font-weight: 700;
+  margin-bottom: 4px;
+}
+.pending-meta {
+  font-size: 12px; color: var(--muted);
+  margin-bottom: 14px;
+  font-family: 'Space Mono', monospace;
+  line-height: 1.5;
+}
+.pending-meta span { color: var(--accent); }
 
-  /* custom dist field hidden/shown */
-  .dist-custom { display: none; }
-  .dist-custom.visible { display: flex; }
+/* ── ARRIVAL FORM ────────────────────────────────────────── */
+.arrival-row {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; margin-bottom: 10px;
+}
+/* Botões grandes para polegar — área mínima 50px de altura */
+.btn-chegada {
+  width: 100%; min-height: 50px;
+  padding: 12px 16px;
+  background: var(--accent); color: var(--bg);
+  border: none; border-radius: 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900; font-size: 17px;
+  letter-spacing: 2px; text-transform: uppercase;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.btn-chegada:active { opacity: .82; }
+.btn-cancel {
+  width: 100%; min-height: 44px;
+  padding: 10px;
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 13px;
+  letter-spacing: 1px; text-transform: uppercase;
+  cursor: pointer; margin-top: 6px;
+  -webkit-tap-highlight-color: transparent;
+}
 
-  .preview-dist {
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--accent2);
-    text-align: center;
-    padding: 8px;
-    background: var(--surface);
-    border-radius: 8px;
-    border: 1px dashed var(--border);
-  }
+/* ── SECTION ─────────────────────────────────────────────── */
+.section {
+  padding: 16px;
+  padding-left: calc(16px + env(safe-area-inset-left));
+  padding-right: calc(16px + env(safe-area-inset-right));
+}
+.section-title {
+  font-weight: 700; font-size: 10px;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-  .btn-add {
-    width: 100%;
-    padding: 14px;
-    background: var(--accent);
-    color: #0d0f0f;
-    border: none;
-    border-radius: 10px;
-    font-family: var(--sans);
-    font-weight: 900;
-    font-size: 16px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.15s;
-    margin-top: 4px;
-  }
-  .btn-add:active { opacity: 0.85; transform: scale(0.98); }
+/* ── DEPARTURE FORM ──────────────────────────────────────── */
+.form-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+}
+.form-row {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; margin-bottom: 10px;
+}
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted);
+}
+/* font-size 16px em inputs: OBRIGATÓRIO no iOS para evitar zoom automático */
+.field input, .field select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 16px; /* NÃO reduzir abaixo de 16px */
+  padding: 11px 12px;
+  min-height: 44px; /* touch target mínimo */
+  outline: none;
+  transition: border-color .15s;
+  width: 100%;
+  -webkit-appearance: none; appearance: none;
+}
+.field input:focus, .field select:focus { border-color: var(--accent); }
+.field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a7a6a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+.dist-custom { display: none; }
+.dist-custom.visible { display: flex; }
+.preview-dist {
+  font-family: 'Space Mono', monospace;
+  font-size: 13px; color: var(--accent2);
+  text-align: center; padding: 9px;
+  background: var(--surface);
+  border-radius: 10px;
+  border: 1px dashed var(--border);
+  margin-bottom: 10px;
+}
+.btn-saida {
+  width: 100%; min-height: 52px;
+  padding: 14px 16px;
+  background: var(--accent2); color: var(--bg);
+  border: none; border-radius: 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900; font-size: 17px;
+  letter-spacing: 3px; text-transform: uppercase;
+  cursor: pointer; margin-top: 4px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.btn-saida:active { opacity: .82; transform: scale(.98); }
 
-  /* ── TRIPS TABLE ── */
-  .trips-wrap {
-    overflow-x: auto;
-    border-radius: 14px;
-    border: 1px solid var(--border);
-  }
-  table {
-    width: 100%;
-    min-width: 680px;
-    border-collapse: collapse;
-    font-family: var(--mono);
-    font-size: 12px;
-  }
-  thead tr {
-    background: var(--surface);
-    border-bottom: 2px solid var(--accent);
-  }
-  th {
-    padding: 10px 12px;
-    text-align: left;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--muted);
-    white-space: nowrap;
-  }
-  tbody tr {
-    border-bottom: 1px solid var(--border);
-    transition: background 0.1s;
-  }
-  tbody tr:last-child { border-bottom: none; }
-  tbody tr:nth-child(even) { background: rgba(255,255,255,0.02); }
-  tbody tr:hover { background: rgba(181,242,58,0.04); }
-  td {
-    padding: 10px 12px;
-    white-space: nowrap;
-  }
-  .td-date { color: var(--muted); font-size: 11px; }
-  .td-loc {
-    max-width: 100px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    color: var(--text);
-  }
-  .td-num { color: var(--accent2); text-align: right; }
-  .td-num.warn { color: var(--warn); }
-  .td-num.danger { color: var(--danger); }
-  .td-num.good { color: var(--accent); }
-  .arrow { color: var(--muted); }
-  .td-del {
-    color: var(--muted);
-    cursor: pointer;
-    text-align: center;
-    font-size: 16px;
-    transition: color 0.15s;
-  }
-  .td-del:hover { color: var(--danger); }
+/* ── AUTONOMY BAR ────────────────────────────────────────── */
+.autonomy-bar-wrap {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 13px 15px; margin-top: 12px;
+}
+.autonomy-label {
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 8px;
+}
+.autonomy-track {
+  height: 8px; background: var(--surface);
+  border-radius: 4px; overflow: hidden; margin-bottom: 6px;
+}
+.autonomy-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent2), var(--accent));
+  border-radius: 4px; transition: width .5s ease;
+}
+.autonomy-vals {
+  display: flex; justify-content: space-between;
+  font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted);
+}
+.autonomy-vals strong { color: var(--accent); font-size: 16px; }
 
-  /* Battery badge */
-  .bat {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-  }
-  .bat-bar {
-    width: 28px;
-    height: 10px;
-    border: 1.5px solid var(--border);
-    border-radius: 2px;
-    position: relative;
-    overflow: hidden;
-  }
-  .bat-bar::after {
-    content: '';
-    position: absolute;
-    right: -3px;
-    top: 2px;
-    width: 3px;
-    height: 6px;
-    background: var(--border);
-    border-radius: 0 1px 1px 0;
-  }
-  .bat-fill {
-    height: 100%;
-    border-radius: 1px;
-    transition: width 0.3s;
-  }
+/* ── TABLE ───────────────────────────────────────────────── */
+.trips-wrap {
+  overflow-x: auto;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  -webkit-overflow-scrolling: touch;
+}
+table {
+  width: 100%; min-width: 700px;
+  border-collapse: collapse;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+}
+thead tr { background: var(--surface); border-bottom: 2px solid var(--accent); }
+th {
+  padding: 10px 10px; text-align: left;
+  font-size: 8px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted); white-space: nowrap;
+}
+tbody tr { border-bottom: 1px solid var(--border); }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:nth-child(even) { background: rgba(128,128,128,.04); }
+td { padding: 10px 10px; white-space: nowrap; }
+.td-date { color: var(--muted); font-size: 10px; }
+.td-num { text-align: right; }
+.good   { color: var(--accent); }
+.warn   { color: var(--warn); }
+.danger { color: var(--danger); }
+.muted-c { color: var(--muted); }
+.bat { display: inline-flex; align-items: center; gap: 3px; }
+.bat-bar {
+  width: 24px; height: 9px;
+  border: 1.5px solid var(--border);
+  border-radius: 2px; position: relative; overflow: hidden;
+}
+.bat-bar::after {
+  content: ''; position: absolute;
+  right: -3px; top: 2px;
+  width: 3px; height: 5px;
+  background: var(--border); border-radius: 0 1px 1px 0;
+}
+.bat-fill { height: 100%; border-radius: 1px; transition: width .3s; }
+/* Touch target para deletar: 44px mínimo */
+.td-del {
+  color: var(--muted); cursor: pointer;
+  text-align: center; font-size: 16px;
+  min-width: 44px; padding: 10px 12px !important;
+}
+.td-del:active { color: var(--danger); }
 
-  /* ── SETTINGS PANEL ── */
-  .settings-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 200;
-    backdrop-filter: blur(4px);
-  }
-  .settings-overlay.open { display: flex; align-items: flex-end; }
-  .settings-sheet {
-    background: var(--card);
-    border-radius: 20px 20px 0 0;
-    border-top: 2px solid var(--accent);
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-    padding: 24px 20px 40px;
-    animation: slideUp 0.25s ease;
-  }
-  @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to   { transform: translateY(0); }
-  }
-  .sheet-title {
-    font-family: var(--sans);
-    font-weight: 900;
-    font-size: 20px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .dist-grid {
-    display: grid;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-  .dist-row {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .dist-row-label {
-    flex: 1;
-    font-size: 13px;
-    font-weight: 500;
-    line-height: 1.3;
-    color: var(--text);
-  }
-  .dist-row-label small {
-    display: block;
-    font-size: 10px;
-    color: var(--muted);
-    font-family: var(--mono);
-    margin-top: 1px;
-  }
-  .dist-input-wrap {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .dist-input-wrap input {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--accent);
-    font-family: var(--mono);
-    font-size: 16px;
-    font-weight: 700;
-    padding: 6px 8px;
-    width: 70px;
-    text-align: right;
-    outline: none;
-  }
-  .dist-input-wrap input:focus { border-color: var(--accent); }
-  .dist-input-wrap span { color: var(--muted); font-size: 11px; }
+/* ── SETTINGS SHEET ──────────────────────────────────────── */
+.settings-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.65); z-index: 200;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.settings-overlay.open { display: flex; align-items: flex-end; }
+.settings-sheet {
+  background: var(--card);
+  border-radius: 22px 22px 0 0;
+  border-top: 2px solid var(--accent);
+  width: 100%; max-height: 88vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  /* padding-bottom inclui home indicator */
+  padding: 22px 16px calc(28px + env(safe-area-inset-bottom));
+  padding-left: calc(16px + env(safe-area-inset-left));
+  padding-right: calc(16px + env(safe-area-inset-right));
+  animation: slideUp .28s cubic-bezier(.32,0,.67,0);
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.sheet-title {
+  font-weight: 900; font-size: 20px;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 20px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+/* Drag handle visual */
+.sheet-handle {
+  width: 40px; height: 4px;
+  background: var(--border); border-radius: 2px;
+  margin: 0 auto 18px;
+}
+.dist-row {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 14px;
+  display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+}
+.dist-row-label { flex: 1; font-size: 13px; font-weight: 600; line-height: 1.3; }
+.dist-row-label small {
+  display: block; font-size: 10px;
+  color: var(--muted); font-family: 'Space Mono', monospace; margin-top: 2px;
+}
+.dist-input-wrap { display: flex; align-items: center; gap: 4px; }
+.dist-input-wrap input {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--accent);
+  font-family: 'Space Mono', monospace;
+  font-size: 16px; font-weight: 700;
+  padding: 8px 8px; width: 68px; text-align: right; outline: none;
+  min-height: 44px;
+}
+.dist-input-wrap input:focus { border-color: var(--accent); }
+.dist-input-wrap span { color: var(--muted); font-size: 11px; }
+.btn-save {
+  width: 100%; min-height: 50px;
+  padding: 14px;
+  background: var(--accent); color: var(--bg);
+  border: none; border-radius: 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900; font-size: 16px;
+  letter-spacing: 2px; text-transform: uppercase;
+  cursor: pointer; margin-top: 10px;
+  touch-action: manipulation;
+}
+.btn-2nd {
+  width: 100%; min-height: 46px;
+  padding: 12px;
+  background: var(--surface); color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 14px;
+  letter-spacing: 1px; text-transform: uppercase;
+  cursor: pointer; margin-top: 8px;
+  touch-action: manipulation;
+}
+.btn-2nd.red { color: var(--danger) !important; border-color: var(--danger) !important; }
+.s-field input {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 16px; padding: 11px 12px;
+  outline: none; width: 100%; min-height: 44px;
+}
 
-  .btn-save-settings {
-    width: 100%;
-    padding: 14px;
-    background: var(--accent);
-    color: #0d0f0f;
-    border: none;
-    border-radius: 10px;
-    font-family: var(--sans);
-    font-weight: 900;
-    font-size: 16px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    cursor: pointer;
-    margin-top: 10px;
-  }
-
-  /* empty state */
-  .empty-state {
-    text-align: center;
-    padding: 50px 20px;
-    color: var(--muted);
-  }
-  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
-  .empty-state p { font-size: 13px; line-height: 1.6; }
-
-  /* toast */
-  .toast {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: var(--accent);
-    color: #0d0f0f;
-    font-family: var(--sans);
-    font-weight: 700;
-    font-size: 14px;
-    letter-spacing: 1px;
-    padding: 12px 20px;
-    border-radius: 30px;
-    z-index: 300;
-    transition: transform 0.3s ease;
-    pointer-events: none;
-    white-space: nowrap;
-  }
-  .toast.show { transform: translateX(-50%) translateY(0); }
-
-  /* export btn */
-  .btn-export {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text);
-    border-radius: 10px;
-    padding: 12px 16px;
-    font-family: var(--sans);
-    font-weight: 700;
-    font-size: 14px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    cursor: pointer;
-    width: 100%;
-    margin-top: 10px;
-  }
-
-  .note {
-    font-size: 11px;
-    color: var(--muted);
-    text-align: center;
-    margin-top: 8px;
-    font-family: var(--mono);
-  }
-
-  /* autonomy meter */
-  .autonomy-bar-wrap {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px 16px;
-    margin-bottom: 12px;
-  }
-  .autonomy-label {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 8px;
-  }
-  .autonomy-track {
-    height: 8px;
-    background: var(--surface);
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 6px;
-  }
-  .autonomy-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent2), var(--accent));
-    border-radius: 4px;
-    transition: width 0.5s ease;
-  }
-  .autonomy-vals {
-    display: flex;
-    justify-content: space-between;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-  }
-  .autonomy-vals strong {
-    color: var(--accent);
-    font-size: 16px;
-  }
+/* ── MISC ────────────────────────────────────────────────── */
+.empty-state { text-align: center; padding: 40px 20px; color: var(--muted); }
+.empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; line-height: 1.6; }
+.note {
+  font-size: 10px; color: var(--muted);
+  text-align: center; margin-top: 8px;
+  font-family: 'Space Mono', monospace;
+}
+/* Toast acima do home indicator */
+.toast {
+  position: fixed;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--accent); color: var(--bg);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 15px; letter-spacing: 1px;
+  padding: 12px 22px; border-radius: 30px;
+  z-index: 300; transition: transform .3s ease;
+  pointer-events: none; white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(0,0,0,.3);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.dimmed { opacity: .35; pointer-events: none; transition: opacity .2s; }
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <header>
-  <div class="logo">
-    <span class="logo-main">⚡ S12</span>
-    <span class="logo-sub">STREET GO · TRACKER</span>
+  <div>
+    <div class="logo-main">⚡ S12</div>
+    <div class="logo-sub">STREET GO · TRACKER</div>
   </div>
   <div class="header-btns">
-    <button class="btn-icon" onclick="openSettings()" title="Configurações">⚙️</button>
-    <button class="btn-icon" onclick="exportCSV()" title="Exportar CSV">📤</button>
+    <button class="btn-icon" onclick="toggleTheme()" id="themeBtn">☀️</button>
+    <button class="btn-icon" onclick="openSettings()">⚙️</button>
+    <button class="btn-icon" onclick="exportCSV()">📤</button>
   </div>
 </header>
 
-<!-- STATS BAR -->
-<div class="stats-bar" id="statsBar">
-  <div class="stat-pill">
-    <span class="stat-val" id="s-trips">0</span>
-    <span class="stat-lbl">viagens</span>
-  </div>
-  <div class="stat-pill">
-    <span class="stat-val" id="s-km">0</span>
-    <span class="stat-lbl">km total</span>
-  </div>
-  <div class="stat-pill">
-    <span class="stat-val" id="s-range">—</span>
-    <span class="stat-lbl">autonomia</span>
-  </div>
-  <div class="stat-pill">
-    <span class="stat-val" id="s-perkm">—</span>
-    <span class="stat-lbl">%/km médio</span>
-  </div>
-  <div class="stat-pill">
-    <span class="stat-val" id="s-avguse">—</span>
-    <span class="stat-lbl">% uso médio</span>
-  </div>
+<div class="stats-bar">
+  <div class="stat-pill"><span class="stat-val" id="s-trips">0</span><span class="stat-lbl">viagens</span></div>
+  <div class="stat-pill"><span class="stat-val" id="s-km">0</span><span class="stat-lbl">km total</span></div>
+  <div class="stat-pill"><span class="stat-val" id="s-range">—</span><span class="stat-lbl">autonomia</span></div>
+  <div class="stat-pill"><span class="stat-val" id="s-perkm">—</span><span class="stat-lbl">%/km</span></div>
+  <div class="stat-pill"><span class="stat-val" id="s-speed">—</span><span class="stat-lbl">km/h méd</span></div>
 </div>
 
-<!-- MAIN CONTENT -->
-<div class="section">
-
-  <!-- AUTONOMY VISUAL -->
-  <div id="autonomyBlock" style="display:none">
-    <div class="autonomy-bar-wrap">
-      <div class="autonomy-label">Autonomia estimada atual</div>
-      <div class="autonomy-track">
-        <div class="autonomy-fill" id="autoFill" style="width:0%"></div>
-      </div>
-      <div class="autonomy-vals">
-        <span>0 km</span>
-        <span><strong id="autoVal">—</strong> km</span>
-        <span id="autoMax">— km max</span>
-      </div>
-    </div>
+<!-- PENDING BANNER -->
+<div class="pending-banner" id="pendingBanner">
+  <div class="pending-title"><span class="pending-dot"></span>EM VIAGEM — REGISTRAR CHEGADA</div>
+  <div class="pending-route" id="pendingRoute">—</div>
+  <div class="pending-meta" id="pendingMeta">—</div>
+  <div class="arrival-row">
+    <div class="field"><label>🕐 Hora chegada</label><input type="time" id="a-time"></div>
+    <div class="field"><label>🔋 Bat. chegada %</label><input type="number" id="a-bat" placeholder="72" min="0" max="100" inputmode="numeric"></div>
   </div>
+  <div class="field" style="margin-bottom:10px">
+    <label>📝 Nota (opcional)</label>
+    <input type="text" id="a-note" placeholder="ex: chuva, modo eco…" autocomplete="off">
+  </div>
+  <button class="btn-chegada" onclick="registerArrival()">✓ REGISTRAR CHEGADA</button>
+  <button class="btn-cancel" onclick="cancelPending()">✕ cancelar saída</button>
+</div>
 
-  <!-- ADD TRIP -->
-  <div class="section-title">Nova viagem</div>
-
-  <div class="form-card">
+<!-- DEPARTURE FORM -->
+<div class="section">
+  <div class="section-title">Registrar saída</div>
+  <div class="form-card" id="departureForm">
     <div class="form-row">
-      <div class="field">
-        <label>📅 Data</label>
-        <input type="date" id="f-date">
-      </div>
-      <div class="field">
-        <label>🕐 Hora saída</label>
-        <input type="time" id="f-time">
-      </div>
+      <div class="field"><label>📅 Data</label><input type="date" id="f-date"></div>
+      <div class="field"><label>🕐 Hora saída</label><input type="time" id="f-time"></div>
     </div>
-
     <div class="form-row">
       <div class="field">
         <label>📍 Saída</label>
@@ -608,206 +533,139 @@
         </select>
       </div>
     </div>
-
     <div class="form-row dist-custom" id="distCustomRow">
       <div class="field" style="grid-column:1/-1">
         <label>📏 Distância manual (km)</label>
-        <input type="number" id="f-dist-custom" placeholder="ex: 4.5" step="0.1" min="0" oninput="updateDistPreview()">
+        <input type="number" id="f-dist-custom" placeholder="ex: 4.5" step="0.1" min="0" inputmode="decimal" oninput="updateDist()">
       </div>
     </div>
-
     <div class="preview-dist" id="distPreview">— km estimados</div>
-
-    <div class="form-row triple" style="margin-top:10px">
-      <div class="field">
-        <label>🔋 Bat. saída %</label>
-        <input type="number" id="f-bat-out" placeholder="100" min="0" max="100" oninput="updateCalcPreview()">
-      </div>
-      <div class="field">
-        <label>🔋 Bat. chegada %</label>
-        <input type="number" id="f-bat-in" placeholder="72" min="0" max="100" oninput="updateCalcPreview()">
-      </div>
-      <div class="field">
-        <label>⚡ Previsão</label>
-        <input type="text" id="f-calc-preview" readonly placeholder="—" style="color:var(--accent2);cursor:default">
-      </div>
+    <div class="field" style="margin-bottom:4px">
+      <label>🔋 Bateria agora (saída) %</label>
+      <input type="number" id="f-bat-out" placeholder="100" min="0" max="100" inputmode="numeric">
     </div>
-
-    <div class="field" style="margin-top:10px">
-      <label>📝 Nota (opcional)</label>
-      <input type="text" id="f-note" placeholder="ex: chuva, modo eco, carga baixa…">
-    </div>
-
-    <button class="btn-add" onclick="addTrip()">+ REGISTRAR VIAGEM</button>
+    <button class="btn-saida" onclick="registerDeparture()">🛵 REGISTRAR SAÍDA</button>
   </div>
 
-  <!-- TRIPS TABLE -->
-  <div class="section-title">Histórico</div>
+  <div id="autonomyBlock" style="display:none">
+    <div class="autonomy-bar-wrap">
+      <div class="autonomy-label">Autonomia real média vs fabricante</div>
+      <div class="autonomy-track"><div class="autonomy-fill" id="autoFill" style="width:0%"></div></div>
+      <div class="autonomy-vals">
+        <span>0 km</span>
+        <span><strong id="autoVal">—</strong> km</span>
+        <span id="autoMax">—</span>
+      </div>
+    </div>
+  </div>
 
+  <div class="section-title" style="margin-top:20px">Histórico</div>
   <div id="emptyState" class="empty-state">
     <div class="icon">🛵</div>
-    <p>Nenhuma viagem registrada ainda.<br>Adicione sua primeira acima!</p>
+    <p>Nenhuma viagem completa ainda.<br>Registre sua saída acima!</p>
   </div>
-
   <div class="trips-wrap" id="tableWrap" style="display:none">
     <table>
-      <thead>
-        <tr>
-          <th>Data / Hora</th>
-          <th>Rota</th>
-          <th>Dist km</th>
-          <th>Bat saída</th>
-          <th>Bat chegada</th>
-          <th>% gasto</th>
-          <th>%/km</th>
-          <th>Autonomia est.</th>
-          <th>Nota</th>
-          <th></th>
-        </tr>
-      </thead>
+      <thead><tr>
+        <th>Data / Saída</th><th>Rota</th><th>km</th>
+        <th>Bat.S</th><th>Bat.C</th>
+        <th>%gasto</th><th>%/km</th><th>Auto.</th>
+        <th>Dur.</th><th>km/h</th><th>Nota</th><th></th>
+      </tr></thead>
       <tbody id="tripsBody"></tbody>
     </table>
   </div>
-  <p class="note" id="tableNote" style="display:none">← deslize para ver mais colunas</p>
-
+  <p class="note" id="tableNote" style="display:none">← deslize a tabela para ver mais →</p>
 </div>
 
 <!-- SETTINGS OVERLAY -->
 <div class="settings-overlay" id="settingsOverlay" onclick="closeSettingsOutside(event)">
   <div class="settings-sheet">
+    <div class="sheet-handle"></div>
     <div class="sheet-title">
       <span>⚙️ Configurações</span>
       <button class="btn-icon" onclick="closeSettings()">✕</button>
     </div>
-
-    <div class="section-title" style="margin-bottom:14px">Distâncias entre locais (a pé / rota real)</div>
-    <p class="note" style="margin-bottom:14px;text-align:left">Ajuste conforme sua rota real de bike</p>
-
-    <div class="dist-grid" id="distGrid"></div>
-
-    <div class="section-title" style="margin-top:16px;margin-bottom:14px">Bateria da moto</div>
-    <div class="form-row">
-      <div class="field">
-        <label>Capacidade total (%)</label>
-        <input type="number" id="s-bat-cap" value="100" min="1" max="100" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:14px;padding:10px 12px;outline:none;width:100%">
-      </div>
-      <div class="field">
-        <label>Fabricante diz (km)</label>
-        <input type="number" id="s-mfr-range" value="70" min="1" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:14px;padding:10px 12px;outline:none;width:100%">
-      </div>
-    </div>
-
-    <button class="btn-save-settings" onclick="saveSettings()">✓ SALVAR</button>
-    <button class="btn-export" onclick="exportCSV(); closeSettings();">📤 Exportar CSV</button>
-    <button class="btn-export" style="margin-top:6px;color:var(--danger);border-color:var(--danger)" onclick="clearAll()">🗑️ Apagar todos os dados</button>
+    <div class="section-title" style="margin-bottom:10px">Distâncias entre locais</div>
+    <p class="note" style="margin-bottom:12px;text-align:left;color:var(--muted)">Ajuste conforme sua rota real de bike</p>
+    <div id="distGrid"></div>
+    <div class="section-title" style="margin-top:16px;margin-bottom:10px">Autonomia</div>
+    <div class="s-field field"><label>Fabricante diz (km)</label><input type="number" id="s-mfr-range" value="70" min="1" inputmode="numeric"></div>
+    <button class="btn-save" onclick="saveSettings()">✓ SALVAR</button>
+    <button class="btn-2nd" onclick="exportCSV();closeSettings()">📤 Exportar CSV</button>
+    <button class="btn-2nd red" onclick="clearAll()">🗑️ Apagar todos os dados</button>
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ══ DATA ══════════════════════════════════════════════════════
+// ══ DADOS ════════════════════════════════════════════════════
 const LOCATIONS = {
   PampaFoods: { label: 'PampaFoods', addr: 'Av. Farrapos, 2475 - Floresta' },
   Casa:       { label: 'Casa',       addr: 'R. Carlos Von Koseritz, 1583 - São João' },
   UFRGS:      { label: 'UFRGS',      addr: 'R. Sarmento Leite, 425 - Centro Histórico' },
 };
+const DEFAULT_DISTS = { 'PampaFoods|Casa': 8.4, 'PampaFoods|UFRGS': 5.1, 'Casa|UFRGS': 5.8 };
+const DIST_PAIRS = [
+  ['PampaFoods','Casa',  'PampaFoods ↔ Casa'],
+  ['PampaFoods','UFRGS', 'PampaFoods ↔ UFRGS'],
+  ['Casa','UFRGS',       'Casa ↔ UFRGS'],
+];
 
-// Distâncias padrão estimadas (a pé / rota real aproximada em km)
-// PampaFoods ↔ Casa: ~8.4 km  (Floresta → São João cruzando a cidade)
-// PampaFoods ↔ UFRGS: ~5.1 km (Floresta → Centro Histórico)
-// Casa ↔ UFRGS: ~5.8 km       (São João → Centro Histórico)
-const DEFAULT_DISTS = {
-  'PampaFoods|Casa':   8.4,
-  'PampaFoods|UFRGS':  5.1,
-  'Casa|UFRGS':        5.8,
-};
+let settings = loadS(), trips = loadT(), pending = loadP();
+let theme = localStorage.getItem('sg_theme') || 'dark';
 
-let settings = loadSettings();
-let trips    = loadTrips();
-
-function loadSettings() {
-  try {
-    const s = JSON.parse(localStorage.getItem('sg_settings') || 'null');
-    return s || {
-      dists: { ...DEFAULT_DISTS },
-      batCap: 100,
-      mfrRange: 70
-    };
-  } catch { return { dists: { ...DEFAULT_DISTS }, batCap: 100, mfrRange: 70 }; }
-}
-
-function saveSettingsData() {
+function loadS() { try { return JSON.parse(localStorage.getItem('sg_settings')) || { dists:{...DEFAULT_DISTS}, mfrRange:70 }; } catch { return { dists:{...DEFAULT_DISTS}, mfrRange:70 }; } }
+function loadT() { try { return JSON.parse(localStorage.getItem('sg_trips')) || []; } catch { return []; } }
+function loadP() { try { return JSON.parse(localStorage.getItem('sg_pending')) || null; } catch { return null; } }
+function save() {
   localStorage.setItem('sg_settings', JSON.stringify(settings));
+  localStorage.setItem('sg_trips',    JSON.stringify(trips));
+  localStorage.setItem('sg_pending',  JSON.stringify(pending));
 }
 
-function loadTrips() {
-  try {
-    return JSON.parse(localStorage.getItem('sg_trips') || '[]');
-  } catch { return []; }
+// ══ TEMA ═════════════════════════════════════════════════════
+applyTheme(theme);
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('themeBtn').textContent = t === 'dark' ? '☀️' : '🌙';
+}
+function toggleTheme() {
+  theme = theme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('sg_theme', theme);
+  applyTheme(theme);
 }
 
-function saveTripsData() {
-  localStorage.setItem('sg_trips', JSON.stringify(trips));
-}
-
-// ══ DISTANCE LOOKUP ══════════════════════════════════════════
+// ══ DISTÂNCIAS ═══════════════════════════════════════════════
 function getDist(a, b) {
   if (a === b) return 0;
-  const k1 = `${a}|${b}`, k2 = `${b}|${a}`;
-  return settings.dists[k1] ?? settings.dists[k2] ?? null;
+  return settings.dists[`${a}|${b}`] ?? settings.dists[`${b}|${a}`] ?? null;
 }
 
-// ══ FORM INIT ════════════════════════════════════════════════
-(function initForm() {
-  const today = new Date();
-  const pad = n => String(n).padStart(2, '0');
-  document.getElementById('f-date').value =
-    `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
-  document.getElementById('f-time').value =
-    `${pad(today.getHours())}:${pad(today.getMinutes())}`;
+// ══ INICIALIZAÇÃO DO FORMULÁRIO ═══════════════════════════════
+(function () {
+  const now = new Date(), pad = n => String(n).padStart(2, '0');
+  document.getElementById('f-date').value = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  document.getElementById('f-time').value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  document.getElementById('a-time').value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
   updateDist();
 })();
 
 function updateDist() {
   const from = document.getElementById('f-from').value;
   const to   = document.getElementById('f-to').value;
-  const customRow = document.getElementById('distCustomRow');
-  const preview   = document.getElementById('distPreview');
-
-  const needCustom = (from === 'outro' || to === 'outro');
-  customRow.classList.toggle('visible', needCustom);
-
+  const needCustom = from === 'outro' || to === 'outro';
+  document.getElementById('distCustomRow').classList.toggle('visible', needCustom);
+  const preview = document.getElementById('distPreview');
   if (!needCustom) {
     const d = getDist(from, to);
-    if (from === to) {
-      preview.textContent = '⚠️ Saída = destino';
-    } else if (d !== null) {
-      preview.textContent = `↔ ${d.toFixed(1)} km estimados (editável em ⚙️)`;
-    } else {
-      preview.textContent = '— distância não configurada';
-    }
+    preview.textContent = from === to ? '⚠️ Saída = destino'
+      : d !== null ? `↔ ${d.toFixed(1)} km estimados` : '— distância não configurada';
   } else {
-    updateDistPreview();
+    const v = parseFloat(document.getElementById('f-dist-custom').value);
+    preview.textContent = (!isNaN(v) && v > 0) ? `↔ ${v.toFixed(1)} km (manual)` : '— insira a distância acima';
   }
-  updateCalcPreview();
-}
-
-function updateDistPreview() {
-  const from = document.getElementById('f-from').value;
-  const to   = document.getElementById('f-to').value;
-  const custom = parseFloat(document.getElementById('f-dist-custom').value);
-  const preview = document.getElementById('distPreview');
-
-  if (from === 'outro' || to === 'outro') {
-    if (!isNaN(custom) && custom > 0) {
-      preview.textContent = `↔ ${custom.toFixed(1)} km (manual)`;
-    } else {
-      preview.textContent = '— insira a distância acima';
-    }
-  }
-  updateCalcPreview();
 }
 
 function getFormDist() {
@@ -820,303 +678,196 @@ function getFormDist() {
   return getDist(from, to);
 }
 
-function updateCalcPreview() {
-  const dist   = getFormDist();
-  const batOut = parseFloat(document.getElementById('f-bat-out').value);
-  const batIn  = parseFloat(document.getElementById('f-bat-in').value);
-  const preview = document.getElementById('f-calc-preview');
-
-  if (dist && !isNaN(batOut) && !isNaN(batIn)) {
-    const used = batOut - batIn;
-    if (used > 0 && dist > 0) {
-      const perkm = used / dist;
-      const range = 100 / perkm;
-      preview.value = `${range.toFixed(0)} km auto`;
-    } else {
-      preview.value = '—';
-    }
-  } else {
-    preview.value = '—';
-  }
-}
-
-// ══ ADD TRIP ══════════════════════════════════════════════════
-function addTrip() {
+// ══ REGISTRAR SAÍDA ══════════════════════════════════════════
+function registerDeparture() {
+  if (pending) { showToast('⚠️ Já tem uma saída em aberto!'); return; }
   const date   = document.getElementById('f-date').value;
   const time   = document.getElementById('f-time').value;
   const from   = document.getElementById('f-from').value;
   const to     = document.getElementById('f-to').value;
   const dist   = getFormDist();
   const batOut = parseFloat(document.getElementById('f-bat-out').value);
-  const batIn  = parseFloat(document.getElementById('f-bat-in').value);
-  const note   = document.getElementById('f-note').value.trim();
-
-  if (!date)            { showToast('⚠️ Informe a data'); return; }
-  if (from === to)      { showToast('⚠️ Saída = destino'); return; }
-  if (dist === null)    { showToast('⚠️ Informe a distância'); return; }
-  if (isNaN(batOut))    { showToast('⚠️ Informe bateria na saída'); return; }
-  if (isNaN(batIn))     { showToast('⚠️ Informe bateria na chegada'); return; }
-  if (batIn > batOut)   { showToast('⚠️ Bateria chegada > saída?'); return; }
-
-  const trip = {
-    id:     Date.now(),
-    date, time, from, to, dist,
-    batOut, batIn, note
-  };
-
-  trips.unshift(trip);
-  saveTripsData();
-  renderAll();
-  showToast('✓ Viagem registrada!');
-
-  // reset batteries and note
+  if (!date)         { showToast('⚠️ Informe a data'); return; }
+  if (!time)         { showToast('⚠️ Informe a hora'); return; }
+  if (from === to)   { showToast('⚠️ Saída = destino'); return; }
+  if (dist === null) { showToast('⚠️ Informe a distância'); return; }
+  if (isNaN(batOut)) { showToast('⚠️ Informe a bateria na saída'); return; }
+  pending = { id: Date.now(), date, timeDep: time, from, to, dist, batOut };
+  save(); renderAll();
   document.getElementById('f-bat-out').value = '';
-  document.getElementById('f-bat-in').value  = '';
-  document.getElementById('f-note').value    = '';
-  document.getElementById('f-dist-custom').value = '';
-  document.getElementById('f-calc-preview').value = '—';
-  updateDist();
+  const now = new Date(), pad = n => String(n).padStart(2, '0');
+  document.getElementById('a-time').value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  showToast('🛵 Saída registrada! Boa viagem!');
+  // Scroll para o banner de chegada
+  setTimeout(() => document.getElementById('pendingBanner').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
 }
 
-// ══ CALCULATIONS ══════════════════════════════════════════════
-function calcTrip(t) {
-  const used      = t.batOut - t.batIn;            // % gasto
-  const perkm     = t.dist > 0 ? used / t.dist : null; // %/km
-  const autoRange = perkm ? (100 / perkm) : null;  // km com 100%
-  return { used, perkm, autoRange };
+// ══ REGISTRAR CHEGADA ════════════════════════════════════════
+function registerArrival() {
+  if (!pending) return;
+  const timeArr = document.getElementById('a-time').value;
+  const batIn   = parseFloat(document.getElementById('a-bat').value);
+  const note    = document.getElementById('a-note').value.trim();
+  if (!timeArr)           { showToast('⚠️ Informe a hora de chegada'); return; }
+  if (isNaN(batIn))       { showToast('⚠️ Informe a bateria na chegada'); return; }
+  if (batIn > pending.batOut) { showToast('⚠️ Bateria chegada > saída?'); return; }
+  const depM = toMins(pending.timeDep), arrM = toMins(timeArr);
+  const durMin = arrM >= depM ? arrM - depM : 1440 - depM + arrM;
+  trips.unshift({ ...pending, timeArr, batIn, note, durationMin: durMin > 0 ? durMin : null });
+  pending = null; save(); renderAll();
+  document.getElementById('a-bat').value  = '';
+  document.getElementById('a-note').value = '';
+  showToast('✓ Chegada registrada!');
 }
 
-// ══ RENDER ════════════════════════════════════════════════════
-function renderAll() {
-  renderTable();
-  renderStats();
+function cancelPending() {
+  if (!confirm('Cancelar a saída em aberto?')) return;
+  pending = null; save(); renderAll(); showToast('Saída cancelada');
 }
 
-function batColor(pct) {
-  if (pct >= 60) return 'var(--accent)';
-  if (pct >= 30) return 'var(--warn)';
-  return 'var(--danger)';
+// ══ HELPERS ══════════════════════════════════════════════════
+function toMins(t) { if (!t) return 0; const [h, m] = t.split(':').map(Number); return h * 60 + m; }
+function fmtDur(m) { if (!m) return '—'; const h = Math.floor(m/60), min = m%60; return h > 0 ? `${h}h${String(min).padStart(2,'0')}` : `${min}min`; }
+function fmtLoc(k) { return k === 'outro' ? 'Outro' : (LOCATIONS[k]?.label ?? k); }
+function fmtDate(d, t) { if (!d) return '—'; const [,mo,day] = d.split('-'); return t ? `${day}/${mo} ${t}` : `${day}/${mo}`; }
+function batColor(p) { return p >= 60 ? 'var(--accent)' : p >= 30 ? 'var(--warn)' : 'var(--danger)'; }
+function batBadge(p) {
+  const c = batColor(p), w = Math.max(0, Math.min(100, p));
+  return `<span class="bat"><span style="font-size:11px">${p}%</span><span class="bat-bar"><span class="bat-fill" style="width:${w}%;background:${c}"></span></span></span>`;
+}
+function calc(t) {
+  const used = t.batOut - t.batIn;
+  const perkm = t.dist > 0 ? used / t.dist : null;
+  const autoRange = perkm ? 100 / perkm : null;
+  const kmh = (t.durationMin && t.durationMin > 0) ? t.dist / (t.durationMin / 60) : null;
+  return { used, perkm, autoRange, kmh };
+}
+function ncls(v, lowGood) {
+  if (lowGood) return v < 1.2 ? 'good' : v < 1.8 ? 'warn' : 'danger';
+  return v >= 50 ? 'good' : v >= 30 ? 'warn' : 'danger';
 }
 
-function batBadge(pct) {
-  const color = batColor(pct);
-  const w = Math.max(0, Math.min(100, pct));
-  return `<span class="bat">
-    <span style="font-family:var(--mono);font-size:12px">${pct}%</span>
-    <span class="bat-bar"><span class="bat-fill" style="width:${w}%;background:${color}"></span></span>
-  </span>`;
+// ══ RENDER PENDING ═══════════════════════════════════════════
+function renderPending() {
+  const banner = document.getElementById('pendingBanner');
+  const form   = document.getElementById('departureForm');
+  if (!pending) { banner.classList.remove('visible'); form.classList.remove('dimmed'); return; }
+  banner.classList.add('visible'); form.classList.add('dimmed');
+  document.getElementById('pendingRoute').innerHTML =
+    `<span style="color:var(--accent2)">${fmtLoc(pending.from)}</span> <span style="color:var(--muted)">→</span> <span>${fmtLoc(pending.to)}</span>`;
+  document.getElementById('pendingMeta').innerHTML =
+    `${fmtDate(pending.date, pending.timeDep)} &nbsp;·&nbsp; <span>${pending.dist.toFixed(1)} km</span><br>Bat. saída: <span>${pending.batOut}%</span>`;
 }
 
-function fmtLoc(key) {
-  if (key === 'outro') return '📍Outro';
-  return LOCATIONS[key]?.label ?? key;
-}
-
-function fmtDate(d, t) {
-  if (!d) return '—';
-  const [y, m, day] = d.split('-');
-  const base = `${day}/${m}`;
-  return t ? `${base} ${t}` : base;
-}
-
-function numClass(val, lowGood) {
-  // lowGood: true = menor é melhor (perkm)
-  if (lowGood) {
-    return val < 1.2 ? 'good' : val < 1.8 ? 'warn' : 'danger';
-  }
-  return val >= 60 ? 'good' : val >= 40 ? 'warn' : 'danger';
-}
-
+// ══ RENDER TABLE ══════════════════════════════════════════════
 function renderTable() {
-  const body  = document.getElementById('tripsBody');
+  const done  = trips.filter(t => t.batIn !== undefined);
   const empty = document.getElementById('emptyState');
   const wrap  = document.getElementById('tableWrap');
   const note  = document.getElementById('tableNote');
-
-  if (trips.length === 0) {
-    empty.style.display = 'block';
-    wrap.style.display  = 'none';
-    note.style.display  = 'none';
-    return;
-  }
-  empty.style.display = 'none';
-  wrap.style.display  = 'block';
-  note.style.display  = 'block';
-
-  body.innerHTML = trips.map(t => {
-    const { used, perkm, autoRange } = calcTrip(t);
-    const pkClass    = perkm ? numClass(perkm, true) : '';
-    const rangeClass = autoRange ? numClass(autoRange, false) : '';
-
+  if (!done.length) { empty.style.display = 'block'; wrap.style.display = 'none'; note.style.display = 'none'; return; }
+  empty.style.display = 'none'; wrap.style.display = 'block'; note.style.display = 'block';
+  document.getElementById('tripsBody').innerHTML = done.map(t => {
+    const { used, perkm, autoRange, kmh } = calc(t);
     return `<tr>
-      <td class="td-date">${fmtDate(t.date, t.time)}</td>
-      <td class="td-loc">
-        <span style="color:var(--accent2)">${fmtLoc(t.from)}</span>
-        <span class="arrow"> → </span>
-        <span>${fmtLoc(t.to)}</span>
-      </td>
-      <td class="td-num">${t.dist.toFixed(1)}</td>
+      <td class="td-date">${fmtDate(t.date, t.timeDep)}</td>
+      <td><span style="color:var(--accent2)">${fmtLoc(t.from)}</span><span class="muted-c"> → </span>${fmtLoc(t.to)}</td>
+      <td class="td-num muted-c">${t.dist.toFixed(1)}</td>
       <td>${batBadge(t.batOut)}</td>
       <td>${batBadge(t.batIn)}</td>
-      <td class="td-num ${numClass(used, true)}">${used.toFixed(0)}%</td>
-      <td class="td-num ${pkClass}">${perkm ? perkm.toFixed(2) : '—'}</td>
-      <td class="td-num ${rangeClass}">${autoRange ? autoRange.toFixed(0) + ' km' : '—'}</td>
-      <td style="color:var(--muted);font-size:11px;max-width:100px;overflow:hidden;text-overflow:ellipsis">${t.note || ''}</td>
+      <td class="td-num ${ncls(used,true)}">${used.toFixed(0)}%</td>
+      <td class="td-num ${perkm?ncls(perkm,true):'muted-c'}">${perkm?perkm.toFixed(2):'—'}</td>
+      <td class="td-num ${autoRange?ncls(autoRange,false):'muted-c'}">${autoRange?autoRange.toFixed(0)+' km':'—'}</td>
+      <td class="td-num muted-c">${fmtDur(t.durationMin)}</td>
+      <td class="td-num ${kmh?'good':'muted-c'}">${kmh?kmh.toFixed(0):'—'}</td>
+      <td style="color:var(--muted);font-size:10px;max-width:80px;overflow:hidden;text-overflow:ellipsis">${t.note||''}</td>
       <td class="td-del" onclick="deleteTrip(${t.id})">✕</td>
     </tr>`;
   }).join('');
 }
 
+// ══ RENDER STATS ══════════════════════════════════════════════
 function renderStats() {
-  if (trips.length === 0) {
-    document.getElementById('s-trips').textContent  = '0';
-    document.getElementById('s-km').textContent     = '0';
-    document.getElementById('s-range').textContent  = '—';
-    document.getElementById('s-perkm').textContent  = '—';
-    document.getElementById('s-avguse').textContent = '—';
-    document.getElementById('autonomyBlock').style.display = 'none';
-    return;
-  }
-
-  const totalKm   = trips.reduce((s, t) => s + t.dist, 0);
-  const validTrips = trips.filter(t => t.batOut > t.batIn && t.dist > 0);
-  const ranges    = validTrips.map(t => calcTrip(t).autoRange).filter(Boolean);
-  const perkms    = validTrips.map(t => calcTrip(t).perkm).filter(Boolean);
-  const uses      = validTrips.map(t => calcTrip(t).used);
-
-  const avgRange = ranges.length ? ranges.reduce((a, b) => a + b, 0) / ranges.length : null;
-  const avgPerkm = perkms.length ? perkms.reduce((a, b) => a + b, 0) / perkms.length : null;
-  const avgUse   = uses.length   ? uses.reduce((a, b) => a + b, 0) / uses.length   : null;
-
-  document.getElementById('s-trips').textContent  = trips.length;
-  document.getElementById('s-km').textContent     = totalKm.toFixed(0);
-  document.getElementById('s-range').textContent  = avgRange ? avgRange.toFixed(0) + ' km' : '—';
-  document.getElementById('s-perkm').textContent  = avgPerkm ? avgPerkm.toFixed(2) : '—';
-  document.getElementById('s-avguse').textContent = avgUse   ? avgUse.toFixed(0) + '%' : '—';
-
-  // autonomy bar
+  const done = trips.filter(t => t.batIn !== undefined && t.batOut > t.batIn && t.dist > 0);
+  const totalKm = trips.reduce((s, t) => s + t.dist, 0);
+  const avg = arr => arr.length ? arr.reduce((a,b) => a+b, 0) / arr.length : null;
+  const avgRange = avg(done.map(t => calc(t).autoRange).filter(Boolean));
+  const avgPerkm = avg(done.map(t => calc(t).perkm).filter(Boolean));
+  const avgSpeed = avg(done.map(t => calc(t).kmh).filter(Boolean));
+  document.getElementById('s-trips').textContent = trips.length;
+  document.getElementById('s-km').textContent    = totalKm.toFixed(0);
+  document.getElementById('s-range').textContent = avgRange ? avgRange.toFixed(0)+' km' : '—';
+  document.getElementById('s-perkm').textContent = avgPerkm ? avgPerkm.toFixed(2) : '—';
+  document.getElementById('s-speed').textContent = avgSpeed ? avgSpeed.toFixed(0) : '—';
   if (avgRange) {
     const mfr = settings.mfrRange || 70;
-    const pct = Math.min(100, (avgRange / mfr) * 100);
     document.getElementById('autonomyBlock').style.display = 'block';
-    document.getElementById('autoFill').style.width = pct + '%';
+    document.getElementById('autoFill').style.width = Math.min(100, avgRange/mfr*100) + '%';
     document.getElementById('autoVal').textContent  = avgRange.toFixed(0);
     document.getElementById('autoMax').textContent  = `${mfr} km fab.`;
   }
 }
 
-// ══ DELETE ════════════════════════════════════════════════════
+function renderAll() { renderPending(); renderTable(); renderStats(); }
+
 function deleteTrip(id) {
   if (!confirm('Apagar esta viagem?')) return;
   trips = trips.filter(t => t.id !== id);
-  saveTripsData();
-  renderAll();
-  showToast('🗑️ Viagem apagada');
+  save(); renderAll(); showToast('🗑️ Viagem apagada');
 }
 
 // ══ SETTINGS ══════════════════════════════════════════════════
 function openSettings() {
-  renderDistGrid();
-  document.getElementById('s-bat-cap').value  = settings.batCap  || 100;
+  document.getElementById('distGrid').innerHTML = DIST_PAIRS.map(([a,b,label]) => {
+    const val = settings.dists[`${a}|${b}`] ?? settings.dists[`${b}|${a}`] ?? '';
+    return `<div class="dist-row">
+      <div class="dist-row-label">${label}<small>${LOCATIONS[a].addr} → ${LOCATIONS[b].addr}</small></div>
+      <div class="dist-input-wrap"><input type="number" step="0.1" min="0" id="dist_${a}_${b}" value="${val}" placeholder="—" inputmode="decimal"><span>km</span></div>
+    </div>`;
+  }).join('');
   document.getElementById('s-mfr-range').value = settings.mfrRange || 70;
   document.getElementById('settingsOverlay').classList.add('open');
 }
-
-function closeSettings() {
-  document.getElementById('settingsOverlay').classList.remove('open');
-}
-
-function closeSettingsOutside(e) {
-  if (e.target === document.getElementById('settingsOverlay')) closeSettings();
-}
-
-const DIST_PAIRS = [
-  ['PampaFoods', 'Casa',    'PampaFoods ↔ Casa'],
-  ['PampaFoods', 'UFRGS',   'PampaFoods ↔ UFRGS'],
-  ['Casa',       'UFRGS',   'Casa ↔ UFRGS'],
-];
-
-function renderDistGrid() {
-  const grid = document.getElementById('distGrid');
-  grid.innerHTML = DIST_PAIRS.map(([a, b, label]) => {
-    const key = `${a}|${b}`;
-    const val = settings.dists[key] ?? settings.dists[`${b}|${a}`] ?? '';
-    const addrA = LOCATIONS[a]?.addr ?? '';
-    const addrB = LOCATIONS[b]?.addr ?? '';
-    return `<div class="dist-row">
-      <div class="dist-row-label">
-        ${label}
-        <small>${addrA} → ${addrB}</small>
-      </div>
-      <div class="dist-input-wrap">
-        <input type="number" step="0.1" min="0" id="dist_${a}_${b}" value="${val}" placeholder="—">
-        <span>km</span>
-      </div>
-    </div>`;
-  }).join('');
-}
-
+function closeSettings() { document.getElementById('settingsOverlay').classList.remove('open'); }
+function closeSettingsOutside(e) { if (e.target.id === 'settingsOverlay') closeSettings(); }
 function saveSettings() {
-  DIST_PAIRS.forEach(([a, b]) => {
+  DIST_PAIRS.forEach(([a,b]) => {
     const inp = document.getElementById(`dist_${a}_${b}`);
-    if (inp) {
-      const v = parseFloat(inp.value);
-      if (!isNaN(v) && v > 0) settings.dists[`${a}|${b}`] = v;
-    }
+    if (inp) { const v = parseFloat(inp.value); if (!isNaN(v) && v > 0) settings.dists[`${a}|${b}`] = v; }
   });
-  settings.batCap   = parseFloat(document.getElementById('s-bat-cap').value)   || 100;
   settings.mfrRange = parseFloat(document.getElementById('s-mfr-range').value) || 70;
-  saveSettingsData();
-  renderAll();
-  updateDist();
-  closeSettings();
-  showToast('✓ Configurações salvas!');
+  save(); renderAll(); updateDist(); closeSettings(); showToast('✓ Configurações salvas!');
 }
 
-// ══ EXPORT CSV ════════════════════════════════════════════════
+// ══ EXPORT ════════════════════════════════════════════════════
 function exportCSV() {
-  if (trips.length === 0) { showToast('⚠️ Nenhuma viagem para exportar'); return; }
-  const header = ['Data','Hora','Saída','Destino','Dist km','Bat Saída %','Bat Chegada %','Gasto %','%/km','Autonomia est km','Nota'];
-  const rows = trips.map(t => {
-    const { used, perkm, autoRange } = calcTrip(t);
-    return [t.date, t.time, fmtLoc(t.from), fmtLoc(t.to),
-      t.dist.toFixed(1), t.batOut, t.batIn,
-      used.toFixed(0),
-      perkm ? perkm.toFixed(2) : '',
-      autoRange ? autoRange.toFixed(0) : '',
-      `"${t.note || ''}"`
-    ].join(',');
+  if (!trips.length) { showToast('⚠️ Nenhuma viagem'); return; }
+  const h = ['Data','H.Saída','H.Chegada','Rota','km','Bat.Saída%','Bat.Chegada%','%Gasto','%/km','Autonomia km','Duração','km/h','Nota'];
+  const rows = trips.filter(t => t.batIn !== undefined).map(t => {
+    const { used, perkm, autoRange, kmh } = calc(t);
+    return [t.date, t.timeDep||'', t.timeArr||'', `${fmtLoc(t.from)} -> ${fmtLoc(t.to)}`,
+      t.dist.toFixed(1), t.batOut, t.batIn, used.toFixed(0),
+      perkm?perkm.toFixed(2):'', autoRange?autoRange.toFixed(0):'',
+      fmtDur(t.durationMin), kmh?kmh.toFixed(0):'', `"${t.note||''}"`].join(',');
   });
-  const csv  = [header.join(','), ...rows].join('\n');
+  const csv  = [h.join(','), ...rows].join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = `streetgo_viagens_${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast('📤 CSV exportado!');
+  Object.assign(document.createElement('a'), { href: url, download: `streetgo_${new Date().toISOString().slice(0,10)}.csv` }).click();
+  URL.revokeObjectURL(url); showToast('📤 CSV exportado!');
 }
 
-// ══ CLEAR ═════════════════════════════════════════════════════
 function clearAll() {
-  if (!confirm('Apagar TODOS os dados? Essa ação não pode ser desfeita.')) return;
-  trips = [];
-  saveTripsData();
-  renderAll();
-  closeSettings();
-  showToast('🗑️ Dados apagados');
+  if (!confirm('Apagar TODOS os dados?')) return;
+  trips = []; pending = null; save(); renderAll(); closeSettings(); showToast('🗑️ Dados apagados');
 }
 
-// ══ TOAST ═════════════════════════════════════════════════════
 function showToast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
 }
 
-// ══ INIT ══════════════════════════════════════════════════════
 renderAll();
 </script>
 </body>
