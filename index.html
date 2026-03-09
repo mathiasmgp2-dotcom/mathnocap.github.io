@@ -15,12 +15,12 @@
     const c = document.createElement('canvas');
     c.width = c.height = 180;
     const ctx = c.getContext('2d');
-    // Fundo escuro
-    ctx.fillStyle = '#0d0f0f';
+    // Fundo escuro suave
+    ctx.fillStyle = '#1a1a1a';
     ctx.fillRect(0, 0, 180, 180);
-    // Borda arredondada verde (simulada com arco)
-    ctx.strokeStyle = '#b5f23a';
-    ctx.lineWidth = 8;
+    // Borda sutil
+    ctx.strokeStyle = '#e0ddd8';
+    ctx.lineWidth = 6;
     const r = 30;
     ctx.beginPath();
     ctx.moveTo(r, 4); ctx.lineTo(180-r, 4);
@@ -34,16 +34,16 @@
     ctx.closePath();
     ctx.stroke();
     // Linha acento inferior
-    ctx.fillStyle = '#b5f23a';
-    ctx.fillRect(30, 148, 120, 5);
+    ctx.fillStyle = '#e0ddd8';
+    ctx.fillRect(30, 148, 120, 4);
     // Texto S12
-    ctx.fillStyle = '#b5f23a';
+    ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 82px "Arial Black", Arial, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('S12', 90, 85);
     // Subtexto
-    ctx.fillStyle = '#6a7a6a';
+    ctx.fillStyle = '#888480';
     ctx.font = '500 18px Arial, sans-serif';
     ctx.letterSpacing = '3px';
     ctx.fillText('STREET GO', 90, 130);
