@@ -16,10 +16,10 @@
     c.width = c.height = 180;
     const ctx = c.getContext('2d');
     // Fundo escuro suave
-    ctx.fillStyle = '#1a1a1a';
+    ctx.fillStyle = '#111213';
     ctx.fillRect(0, 0, 180, 180);
-    // Borda sutil
-    ctx.strokeStyle = '#e0ddd8';
+    // Borda sutil cinza
+    ctx.strokeStyle = '#9b9ea3';
     ctx.lineWidth = 6;
     const r = 30;
     ctx.beginPath();
@@ -34,16 +34,16 @@
     ctx.closePath();
     ctx.stroke();
     // Linha acento inferior
-    ctx.fillStyle = '#e0ddd8';
+    ctx.fillStyle = '#9b9ea3';
     ctx.fillRect(30, 148, 120, 4);
     // Texto S12
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = '#dddfe2';
     ctx.font = 'bold 82px "Arial Black", Arial, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('S12', 90, 85);
     // Subtexto
-    ctx.fillStyle = '#888480';
+    ctx.fillStyle = '#5c6168';
     ctx.font = '500 18px Arial, sans-serif';
     ctx.letterSpacing = '3px';
     ctx.fillText('STREET GO', 90, 130);
@@ -60,16 +60,16 @@
 <style>
 /* ── TEMAS ───────────────────────────────────────────────── */
 [data-theme="dark"] {
-  --bg:#0d0f0f; --surface:#161919; --card:#1c2020; --border:#2a2f2f;
-  --accent:#b5f23a; --accent2:#4af0c4; --warn:#f0a84a; --danger:#f05a4a;
-  --text:#e8ede8; --muted:#6a7a6a; --shadow:rgba(0,0,0,0.5);
-  --status-bg:#0d0f0f;
+  --bg:#111213; --surface:#18191b; --card:#1e2022; --border:#2e3133;
+  --accent:#9b9ea3; --accent2:#c4c7cc; --warn:#c8a87a; --danger:#c47060;
+  --text:#dddfe2; --muted:#5c6168; --shadow:rgba(0,0,0,0.6);
+  --status-bg:#111213;
 }
 [data-theme="light"] {
-  --bg:#f0f2ee; --surface:#ffffff; --card:#f7f9f5; --border:#d4dace;
-  --accent:#4a8a00; --accent2:#008a6a; --warn:#b06a00; --danger:#b03020;
-  --text:#1a221a; --muted:#7a8a7a; --shadow:rgba(0,0,0,0.12);
-  --status-bg:#ffffff;
+  --bg:#e8e9ea; --surface:#f2f3f4; --card:#ffffff; --border:#c8cacc;
+  --accent:#5a5d63; --accent2:#3a3d42; --warn:#8a6a3a; --danger:#8a3a2a;
+  --text:#1a1c1e; --muted:#7a7d82; --shadow:rgba(0,0,0,0.15);
+  --status-bg:#e8e9ea;
 }
 
 /* ── RESET & BASE ────────────────────────────────────────── */
